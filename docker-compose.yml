@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # Microservice 1: Product Catalog & Inventory (Port 5001)
+  # ============================================================
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    container_name: product-service
+    ports:
+      - "5001:5001"
+    volumes:
+      - product-data:/app/product-service
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================
+  # Microservice 2: Order Management (Port 5002)
+  # ============================================================
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    ports:
+      - "5002:5002"
+    volumes:
+      - order-data:/app/order-service
+    environment:
+      - PRODUCT_SERVICE_URL=http://product-service:5001
+      - CUSTOMER_SERVICE_URL=http://customer-service:5003
+      - PAYMENT_SERVICE_URL=http://payment-service:5004
+    depends_on:
+      product-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================
+  # Microservice 3: Customer & Profile (Port 5003)
+  # ============================================================
+  customer-service:
+    build:
+      context: .
+      dockerfile: customer-service/Dockerfile
+    container_name: customer-service
+    ports:
+      - "5003:5003"
+    volumes:
+      - customer-data:/app/customer-service
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================
+  # Microservice 4: Payment & Notification (Port 5004)
+  # ============================================================
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    container_name: payment-service
+    ports:
+      - "5004:5004"
+    volumes:
+      - payment-data:/app/payment-service
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================
+  # Frontend Web Dashboard (Port 3000)
+  # ============================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: frontend-dashboard
+    ports:
+      - "3000:3000"
+    depends_on:
+      - product-service
+      - order-service
+      - customer-service
+      - payment-service
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+# ============================================================
+# Docker Network & Volumes
+# ============================================================
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  product-data:
+  order-data:
+  customer-data:
+  payment-data:

@@ -1,0 +1,22 @@
+{
+  "name": "shridhar.microservice",
+  "version": "1.0.0",
+  "description": "shridhar.microservice - Scalable Microservices System with 4 Services & Frontend Dashboard",
+  "main": "start-all.js",
+  "scripts": {
+    "start": "node start-all.js",
+    "start:frontend": "node frontend/server.js",
+    "start:backend": "node start-all.js",
+    "start:product": "node product-service/src/server.js",
+    "start:order": "node order-service/src/server.js",
+    "start:customer": "node customer-service/src/server.js",
+    "start:payment": "node payment-service/src/server.js",
+    "test:flow": "node test-flow.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "keywords": ["microservices", "rest-api", "crud", "frontend-dashboard"]
+}
