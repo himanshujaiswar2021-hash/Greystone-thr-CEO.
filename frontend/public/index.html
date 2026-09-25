@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scalable Microservices System - Management Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="top-header">
+      <div class="logo-area">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <h1>Scalable Microservices System</h1>
+          <p class="subtitle">Distributed Architecture: Product, Order, Customer & Payment Services</p>
+        </div>
+      </div>
+      <!-- Service Health Badges -->
+      <div class="health-badges" id="healthBadges">
+        <a href="http://localhost:5001/api-docs" target="_blank" class="badge" id="badge-prod">
+          <span class="dot"></span> Product (:5001)
+        </a>
+        <a href="http://localhost:5002/api-docs" target="_blank" class="badge" id="badge-order">
+          <span class="dot"></span> Order (:5002)
+        </a>
+        <a href="http://localhost:5003/api-docs" target="_blank" class="badge" id="badge-cust">
+          <span class="dot"></span> Customer (:5003)
+        </a>
+        <a href="http://localhost:5004/api-docs" target="_blank" class="badge" id="badge-pay">
+          <span class="dot"></span> Payment (:5004)
+        </a>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-products')">🛍️ Products Catalog</button>
+      <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Customer Accounts</button>
+      <button class="tab-btn highlight-tab" onclick="switchTab('tab-checkout')">⚡ Live Checkout Choreography</button>
+      <button class="tab-btn" onclick="switchTab('tab-orders')">📦 Orders Manager</button>
+      <button class="tab-btn" onclick="switchTab('tab-payments')">💳 Payments & Notifications</button>
+    </nav>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Main Content Tabs -->
+    <main class="content-area">
+
+      <!-- TAB 1: Products -->
+      <section id="tab-products" class="tab-content active">
+        <div class="section-header">
+          <div>
+            <h2>Product Catalog & Inventory</h2>
+            <p>Managed by <strong>Product Service (Port 5001)</strong> with dedicated SQLite DB.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('modal-add-product')">+ Add New Product</button>
+        </div>
+        <div class="grid-cards" id="productsGrid">
+          <div class="loading-spinner">Loading products...</div>
+        </div>
+      </section>
+
+      <!-- TAB 2: Customers -->
+      <section id="tab-customers" class="tab-content">
+        <div class="section-header">
+          <div>
+            <h2>Customer Directory</h2>
+            <p>Managed by <strong>Customer Service (Port 5003)</strong> with dedicated SQLite DB.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('modal-add-customer')">+ Register Customer</button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody">
+              <tr><td colspan="6" class="text-center">Loading customers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 3: Interactive Checkout Choreography -->
+      <section id="tab-checkout" class="tab-content">
+        <div class="section-header">
+          <div>
+            <h2>Distributed Checkout Choreography Visualizer</h2>
+            <p>Demonstrates real-time REST communication across all 4 microservices.</p>
+          </div>
+        </div>
+
+        <div class="checkout-grid">
+          <!-- Form -->
+          <div class="card form-card">
+            <h3>Place a New Order</h3>
+            <form id="orderForm" onsubmit="handlePlaceOrder(event)">
+              <div class="form-group">
+                <label>Select Customer (Service :5003):</label>
+                <select id="orderCustomerSelect" required></select>
+              </div>
+
+              <div class="form-group">
+                <label>Select Product (Service :5001):</label>
+                <select id="orderProductSelect" required onchange="updateProductPreview()"></select>
+                <small id="productStockHint" class="hint-text"></small>
+              </div>
+
+              <div class="form-group">
+                <label>Quantity:</label>
+                <input type="number" id="orderQuantity" value="1" min="1" max="100" required>
+              </div>
+
+              <div class="form-group">
+                <label>Payment Method (Service :5004):</label>
+                <select id="orderPaymentMethod">
+                  <option value="CREDIT_CARD">Credit Card (Instant)</option>
+                  <option value="UPI">UPI / QR</option>
+                  <option value="PAYPAL">PayPal</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-success btn-large" id="btnPlaceOrder">
+                🚀 Place Order & Run Choreography
+              </button>
+            </form>
+          </div>
+
+          <!-- Live Visualizer -->
+          <div class="card visualizer-card">
+            <h3>Inter-Service Execution Pipeline</h3>
+            <div class="pipeline-steps">
+              <div class="pipe-step" id="step-cust">
+                <div class="step-num">1</div>
+                <div class="step-info">
+                  <h4>Customer Service (:5003)</h4>
+                  <p>Verify customer account is ACTIVE & eligible</p>
+                  <span class="step-status">Idle</span>
+                </div>
+              </div>
+
+              <div class="pipe-step" id="step-stock">
+                <div class="step-num">2</div>
+                <div class="step-info">
+                  <h4>Product Service (:5001)</h4>
+                  <p>Validate price & atomically reserve stock</p>
+                  <span class="step-status">Idle</span>
+                </div>
+              </div>
+
+              <div class="pipe-step" id="step-pay">
+                <div class="step-num">3</div>
+                <div class="step-info">
+                  <h4>Payment Service (:5004)</h4>
+                  <p>Authorize charge & dispatch receipt notification</p>
+                  <span class="step-status">Idle</span>
+                </div>
+              </div>
+
+              <div class="pipe-step" id="step-order">
+                <div class="step-num">4</div>
+                <div class="step-info">
+                  <h4>Order Service (:5002)</h4>
+                  <p>Commit order & link transaction reference</p>
+                  <span class="step-status">Idle</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="choreographyLog" class="console-box">
+              Waiting for order submission...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: Orders -->
+      <section id="tab-orders" class="tab-content">
+        <div class="section-header">
+          <div>
+            <h2>Orders Management</h2>
+            <p>Managed by <strong>Order Service (Port 5002)</strong> with dedicated SQLite DB.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="loadOrders()">🔄 Refresh Orders</button>
+        </div>
+        <div class="orders-list" id="ordersList">
+          <div class="loading-spinner">Loading orders...</div>
+        </div>
+      </section>
+
+      <!-- TAB 5: Payments & Notifications -->
+      <section id="tab-payments" class="tab-content">
+        <div class="section-header">
+          <div>
+            <h2>Payments & Notification Audit Log</h2>
+            <p>Managed by <strong>Payment Service (Port 5004)</strong> with dedicated SQLite DB.</p>
+          </div>
+        </div>
+
+        <div class="two-col-grid">
+          <div class="card">
+            <h3>Payment Transactions</h3>
+            <div class="table-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Ref</th>
+                    <th>Order</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                  <tr><td colspan="5" class="text-center">Loading transactions...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Dispatched Notifications</h3>
+            <div class="notif-feed" id="notificationsFeed">
+              <div class="loading-spinner">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal: Add Product -->
+    <div id="modal-add-product" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add New Product</h3>
+          <span class="close-btn" onclick="closeModal('modal-add-product')">&times;</span>
+        </div>
+        <form id="addProductForm" onsubmit="handleAddProduct(event)">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="newProdName" required placeholder="e.g. 4K Gaming Monitor">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="newProdDesc" rows="2" placeholder="Product details..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Price ($)</label>
+              <input type="number" id="newProdPrice" step="0.01" min="0" required placeholder="199.99">
+            </div>
+            <div class="form-group">
+              <label>Initial Stock</label>
+              <input type="number" id="newProdStock" min="0" required placeholder="25">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Create Product</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Add Customer -->
+    <div id="modal-add-customer" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Register New Customer</h3>
+          <span class="close-btn" onclick="closeModal('modal-add-customer')">&times;</span>
+        </div>
+        <form id="addCustomerForm" onsubmit="handleAddCustomer(event)">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="newCustName" required placeholder="e.g. Emma Watson">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="newCustEmail" required placeholder="e.g. emma@example.com">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="newCustPhone" placeholder="+1-555-0188">
+          </div>
+          <div class="form-group">
+            <label>Account Status</label>
+            <select id="newCustStatus">
+              <option value="ACTIVE">ACTIVE (Can order)</option>
+              <option value="SUSPENDED">SUSPENDED (Cannot order)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Register Customer</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Customer & Profile Microservice API",
+    "version": "1.0.0",
+    "description": "Part of the Scalable Backend Microservices System. Manages customer profiles, account verification, and addresses."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5003",
+      "description": "Local Customer Service"
+    }
+  ],
+  "paths": {
+    "/api/customers": {
+      "get": {
+        "summary": "Get all customers",
+        "responses": {
+          "200": { "description": "List of customers" }
+        }
+      },
+      "post": {
+        "summary": "Create customer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email"],
+                "properties": {
+                  "name": { "type": "string", "example": "David Miller" },
+                  "email": { "type": "string", "example": "david.miller@example.com" },
+                  "phone": { "type": "string", "example": "+1-555-0199" },
+                  "status": { "type": "string", "enum": ["ACTIVE", "SUSPENDED"], "example": "ACTIVE" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Customer created" },
+          "409": { "description": "Email already registered" }
+        }
+      }
+    },
+    "/api/customers/{id}": {
+      "get": {
+        "summary": "Get customer by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer details" },
+          "404": { "description": "Customer not found" }
+        }
+      },
+      "put": {
+        "summary": "Update customer",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "status": { "type": "string", "enum": ["ACTIVE", "SUSPENDED"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Customer updated" }
+        }
+      },
+      "delete": {
+        "summary": "Delete customer",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer deleted" }
+        }
+      }
+    },
+    "/api/customers/{id}/verify": {
+      "get": {
+        "summary": "Verify customer eligibility (Inter-Service API)",
+        "description": "Called by Order Service to verify that customer account exists and is ACTIVE",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer is verified and eligible" },
+          "403": { "description": "Customer account is suspended" },
+          "404": { "description": "Customer not found" }
+        }
+      }
+    },
+    "/api/customers/{id}/addresses": {
+      "post": {
+        "summary": "Add shipping address to customer",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["street", "city", "state", "zip_code"],
+                "properties": {
+                  "street": { "type": "string", "example": "789 Broadway" },
+                  "city": { "type": "string", "example": "New York" },
+                  "state": { "type": "string", "example": "NY" },
+                  "zip_code": { "type": "string", "example": "10003" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Address added" }
+        }
+      }
+    }
+  }
+}

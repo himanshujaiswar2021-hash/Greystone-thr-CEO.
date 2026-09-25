@@ -1,0 +1,119 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Order Management Microservice API",
+    "version": "1.0.0",
+    "description": "Part of the Scalable Backend Microservices System. Manages orders and orchestrates inter-service communication with Customer Service (5003), Product Service (5001), and Payment Service (5004)."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5002",
+      "description": "Local Order Service"
+    }
+  ],
+  "paths": {
+    "/api/orders": {
+      "get": {
+        "summary": "Get all orders",
+        "description": "Retrieve list of all customer orders including their items",
+        "responses": {
+          "200": { "description": "List of orders returned successfully" }
+        }
+      },
+      "post": {
+        "summary": "Create order (Inter-Service Orchestration: Customer -> Product -> Payment)",
+        "description": "Verifies customer status, checks product stock, reserves inventory, and charges payment via Payment Service",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": { "type": "integer", "example": 1 },
+                  "customer_name": { "type": "string", "example": "Alice Smith" },
+                  "customer_email": { "type": "string", "example": "alice.smith@example.com" },
+                  "payment_method": { "type": "string", "enum": ["CREDIT_CARD", "UPI", "PAYPAL"], "example": "CREDIT_CARD" },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["product_id", "quantity"],
+                      "properties": {
+                        "product_id": { "type": "integer", "example": 1 },
+                        "quantity": { "type": "integer", "example": 2 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Order created, stock reserved, payment processed" },
+          "400": { "description": "Validation error" },
+          "403": { "description": "Customer account is suspended" },
+          "404": { "description": "Product or customer not found" },
+          "409": { "description": "Insufficient product stock" },
+          "502": { "description": "Inter-service communication failure" }
+        }
+      }
+    },
+    "/api/orders/{id}": {
+      "get": {
+        "summary": "Get order by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Order details with line items" },
+          "404": { "description": "Order not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete order by ID",
+        "description": "Deletes the order and automatically releases reserved stock and issues refund",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Order deleted successfully" },
+          "404": { "description": "Order not found" }
+        }
+      }
+    },
+    "/api/orders/{id}/status": {
+      "put": {
+        "summary": "Update order status",
+        "description": "Updates status (e.g. CANCELLED triggers stock release and payment refund)",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["PENDING", "CONFIRMED", "CANCELLED", "DELIVERED"],
+                    "example": "CANCELLED"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Order status updated" },
+          "400": { "description": "Invalid status" },
+          "404": { "description": "Order not found" }
+        }
+      }
+    }
+  }
+}

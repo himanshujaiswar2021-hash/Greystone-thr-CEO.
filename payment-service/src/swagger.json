@@ -1,0 +1,104 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Payment & Notification Microservice API",
+    "version": "1.0.0",
+    "description": "Part of the Scalable Backend Microservices System. Handles transactions, receipts, notifications, and refunds."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5004",
+      "description": "Local Payment Service"
+    }
+  ],
+  "paths": {
+    "/api/payments": {
+      "get": {
+        "summary": "Get all payments",
+        "responses": {
+          "200": { "description": "List of payments" }
+        }
+      }
+    },
+    "/api/payments/process": {
+      "post": {
+        "summary": "Process payment (Inter-Service API)",
+        "description": "Called by Order Service to charge customer and automatically dispatch receipt notification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["order_id", "customer_id", "amount"],
+                "properties": {
+                  "order_id": { "type": "integer", "example": 1 },
+                  "customer_id": { "type": "integer", "example": 1 },
+                  "amount": { "type": "number", "example": 159.98 },
+                  "payment_method": { "type": "string", "enum": ["CREDIT_CARD", "UPI", "PAYPAL"], "example": "CREDIT_CARD" },
+                  "customer_email": { "type": "string", "example": "alice.smith@example.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Payment processed and receipt sent" },
+          "400": { "description": "Validation error" }
+        }
+      }
+    },
+    "/api/payments/order/{order_id}/refund": {
+      "post": {
+        "summary": "Refund payment for an order (Inter-Service API)",
+        "parameters": [
+          { "name": "order_id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_email": { "type": "string", "example": "alice.smith@example.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Payment refunded" },
+          "404": { "description": "Payment not found" }
+        }
+      }
+    },
+    "/api/payments/{id}": {
+      "get": {
+        "summary": "Get payment by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Payment details" }
+        }
+      },
+      "delete": {
+        "summary": "Delete payment record",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Payment record deleted" }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "summary": "Get sent notifications",
+        "responses": {
+          "200": { "description": "List of sent notifications" }
+        }
+      }
+    }
+  }
+}

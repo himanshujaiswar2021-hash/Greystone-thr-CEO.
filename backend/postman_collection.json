@@ -1,0 +1,230 @@
+{
+  "info": {
+    "_postman_id": "b18f534e-4b21-4d92-9653-microservices-sbsma-4services",
+    "name": "SBSMA Scalable 4-Microservice System",
+    "description": "Complete Postman Collection for 4 Scalable Microservices (Product, Order, Customer, Payment) with inter-service communication, dedicated SQLite databases, and full CRUD operations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "product_base_url", "value": "http://localhost:5001", "type": "string" },
+    { "key": "order_base_url", "value": "http://localhost:5002", "type": "string" },
+    { "key": "customer_base_url", "value": "http://localhost:5003", "type": "string" },
+    { "key": "payment_base_url", "value": "http://localhost:5004", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Customer Service (Port 5003)",
+      "item": [
+        {
+          "name": "GET All Customers",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{customer_base_url}}/api/customers", "host": ["{{customer_base_url}}"], "path": ["api", "customers"] }
+          }
+        },
+        {
+          "name": "GET Customer by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{customer_base_url}}/api/customers/1", "host": ["{{customer_base_url}}"], "path": ["api", "customers", "1"] }
+          }
+        },
+        {
+          "name": "GET Verify Customer (Inter-Service)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{customer_base_url}}/api/customers/1/verify", "host": ["{{customer_base_url}}"], "path": ["api", "customers", "1", "verify"] }
+          }
+        },
+        {
+          "name": "POST Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Michael Scott\",\n  \"email\": \"michael.scott@dundermifflin.com\",\n  \"phone\": \"+1-555-0144\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": { "raw": "{{customer_base_url}}/api/customers", "host": ["{{customer_base_url}}"], "path": ["api", "customers"] }
+          }
+        },
+        {
+          "name": "PUT Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+1-555-9999\"\n}" },
+            "url": { "raw": "{{customer_base_url}}/api/customers/1", "host": ["{{customer_base_url}}"], "path": ["api", "customers", "1"] }
+          }
+        },
+        {
+          "name": "DELETE Customer",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{customer_base_url}}/api/customers/3", "host": ["{{customer_base_url}}"], "path": ["api", "customers", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Product Service (Port 5001)",
+      "item": [
+        {
+          "name": "GET All Products",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{product_base_url}}/api/products", "host": ["{{product_base_url}}"], "path": ["api", "products"] }
+          }
+        },
+        {
+          "name": "GET Product by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{product_base_url}}/api/products/1", "host": ["{{product_base_url}}"], "path": ["api", "products", "1"] }
+          }
+        },
+        {
+          "name": "POST Create Product",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Smart Fitness Watch\",\n  \"description\": \"Heart rate tracker with OLED display\",\n  \"price\": 149.99,\n  \"stock_quantity\": 30,\n  \"category_id\": 1\n}"
+            },
+            "url": { "raw": "{{product_base_url}}/api/products", "host": ["{{product_base_url}}"], "path": ["api", "products"] }
+          }
+        },
+        {
+          "name": "PUT Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"price\": 139.99,\n  \"stock_quantity\": 35\n}" },
+            "url": { "raw": "{{product_base_url}}/api/products/1", "host": ["{{product_base_url}}"], "path": ["api", "products", "1"] }
+          }
+        },
+        {
+          "name": "POST Reserve Stock (Inter-Service)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" },
+            "url": { "raw": "{{product_base_url}}/api/products/1/reserve-stock", "host": ["{{product_base_url}}"], "path": ["api", "products", "1", "reserve-stock"] }
+          }
+        },
+        {
+          "name": "POST Release Stock (Inter-Service)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" },
+            "url": { "raw": "{{product_base_url}}/api/products/1/release-stock", "host": ["{{product_base_url}}"], "path": ["api", "products", "1", "release-stock"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Order Service (Port 5002)",
+      "item": [
+        {
+          "name": "GET All Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{order_base_url}}/api/orders", "host": ["{{order_base_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "GET Order by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{order_base_url}}/api/orders/1", "host": ["{{order_base_url}}"], "path": ["api", "orders", "1"] }
+          }
+        },
+        {
+          "name": "POST Create Order (Full Choreography: Customer -> Product -> Payment)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"payment_method\": \"CREDIT_CARD\",\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{order_base_url}}/api/orders", "host": ["{{order_base_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "POST Create Order - Out Of Stock Test (409 Conflict)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 9999\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{order_base_url}}/api/orders", "host": ["{{order_base_url}}"], "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "PUT Cancel Order (Triggers Stock Release & Payment Refund)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"CANCELLED\"\n}" },
+            "url": { "raw": "{{order_base_url}}/api/orders/1/status", "host": ["{{order_base_url}}"], "path": ["api", "orders", "1", "status"] }
+          }
+        },
+        {
+          "name": "DELETE Order",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{order_base_url}}/api/orders/1", "host": ["{{order_base_url}}"], "path": ["api", "orders", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Payment & Notification Service (Port 5004)",
+      "item": [
+        {
+          "name": "GET All Payments",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{payment_base_url}}/api/payments", "host": ["{{payment_base_url}}"], "path": ["api", "payments"] }
+          }
+        },
+        {
+          "name": "GET All Sent Notifications",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{payment_base_url}}/api/notifications", "host": ["{{payment_base_url}}"], "path": ["api", "notifications"] }
+          }
+        },
+        {
+          "name": "POST Process Payment (Inter-Service)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": 10,\n  \"customer_id\": 1,\n  \"amount\": 89.99,\n  \"payment_method\": \"CREDIT_CARD\",\n  \"customer_email\": \"alice.smith@example.com\"\n}"
+            },
+            "url": { "raw": "{{payment_base_url}}/api/payments/process", "host": ["{{payment_base_url}}"], "path": ["api", "payments", "process"] }
+          }
+        },
+        {
+          "name": "POST Refund Payment (Inter-Service)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_email\": \"alice.smith@example.com\"\n}"
+            },
+            "url": { "raw": "{{payment_base_url}}/api/payments/order/10/refund", "host": ["{{payment_base_url}}"], "path": ["api", "payments", "order", "10", "refund"] }
+          }
+        }
+      ]
+    }
+  ]
+}
